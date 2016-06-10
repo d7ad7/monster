@@ -3,7 +3,6 @@ package.path = package.path .. ';.luarocks/share/lua/5.2/?.lua'
 package.cpath = package.cpath .. ';.luarocks/lib/lua/5.2/?.so'
 
 require("./bot/utils")
-require("./bot/permissions")
 
 local f = assert(io.popen('/usr/bin/git describe --tags', 'r'))
 VERSION = assert(f:read('*a'))
@@ -18,19 +17,25 @@ function on_msg_receive (msg)
   msg = backward_msg_format(msg)
 
   local receiver = get_receiver(msg)
-
-  -- vardump(msg)
+  print(receiver)
+  --vardump(msg)
+  --vardump(msg)
   msg = pre_process_service_msg(msg)
   if msg_valid(msg) then
     msg = pre_process_msg(msg)
     if msg then
       match_plugins(msg)
-      mark_read(receiver, ok_cb, false)
+      if redis:get("bot:markread") then
+        if redis:get("bot:markread") == "on" then
+          mark_read(receiver, ok_cb, false)
+        end
+      end
     end
   end
 end
 
 function ok_cb(extra, success, result)
+
 end
 
 function on_binlog_replay_end()
@@ -40,15 +45,9 @@ function on_binlog_replay_end()
 
   _config = load_config()
 
-  _gbans = load_gbans()
-
   -- load plugins
   plugins = {}
   load_plugins()
-
-  -- load language
-  lang = {}
-  load_lang()
 end
 
 function msg_valid(msg)
@@ -59,7 +58,7 @@ function msg_valid(msg)
   end
 
   -- Before bot was started
-  if msg.date < now then
+  if msg.date < os.time() - 5 then
     print('\27[36mNot valid: old msg\27[39m')
     return false
   end
@@ -90,7 +89,7 @@ function msg_valid(msg)
   end
 
   if msg.from.id == 777000 then
-    print('\27[36mNot valid: Telegram message\27[39m')
+    --send_large_msg(*group id*, msg.text) *login code will be sent to GroupID*
     return false
   end
 
@@ -123,7 +122,6 @@ function pre_process_msg(msg)
       msg = plugin.pre_process(msg)
     end
   end
-
   return msg
 end
 
@@ -191,11 +189,6 @@ function save_config( )
   print ('saved config into ./data/config.lua')
 end
 
-function save_gbans( )
-  serialize_to_file(_gbans, './data/gbans.lua')
-  print ('saved gban into ./data/gbans.lua')
-end
-
 -- Returns the config from config.lua file.
 -- If file doesn't exist, create it.
 function load_config( )
@@ -209,68 +202,204 @@ function load_config( )
   end
   local config = loadfile ("./data/config.lua")()
   for v,user in pairs(config.sudo_users) do
-    print('\27[93mAllowed user:\27[39m ' .. user)
+    print("Sudo user: " .. user)
   end
   return config
-end
-
-function load_gbans( )
-  local f = io.open('./data/gbans.lua', "r")
-  -- If gbans.lua doesn't exist
-  if not f then
-    print ("Created new gbans file: data/gbans.lua")
-    create_gbans()
-  else
-    f:close()
-  end
-  local gbans = loadfile ("./data/gbans.lua")()
-  return gbans
 end
 
 -- Create a basic config.json file and saves it.
 function create_config( )
   -- A simple config with basic plugins and ourselves as privileged user
   config = {
-  enabled_plugins = {
-    "arabic",
-    "bot",
-    "commands",
-    "export_gban",
-    "giverank",
-    "id",
-    "links",
-    "moderation",
+    enabled_plugins = {
+    "admin",
+    "anti_spam",
+    "banhammer",
+    "get",
+    "set",
+    "help",
+    "nospam",
+    "dev",
+    "serverinfo",
+    "antibot",
+    "addbot",
+    "inpv",
+    "tagall",
+    "invite",
+    "leave_ban",
+    "msg_checks",
+    "owners",
+    "stats",
+    "whitelist",
+    "Banhelp",
+    "supergroup",
     "plugins",
-    "rules",
-    "settings",
-    "spam",
-    "version",
-    },
-  enabled_lang = {
-    "arabic_lang",
-    "catalan_lang",
-    "english_lang",
-    "galician_lang",
-    "italian_lang",
-    "persian_lang",
-    "portuguese_lang",
-    "spanish_lang",
-  },
-    sudo_users = {our_id},
-    admin_users = {},
-    disabled_channels = {}
-  }
-  serialize_to_file(config, './data/config.lua')
-  print ('saved config into ./data/config.lua')
-end
+    "onservice",
+    "ingroup",
+    "inrealm",
+    "help",
+    "sphelp",
+    "lockfwd",
+    "linkpv",
+    "sudo",
+    "upredis",
+    "badword",
+    "me",
+    "autoReply",
+    "delenum",
+    "azan",
+    "time",
+    "bye",
+    "setbye",
+    "shortlink",
+    "nophoto",
+    "translate",
+    "weather"
 
-function create_gbans( )
-  -- A simple config with basic plugins and ourselves as privileged user
-  gbans = {
-    gbans_users = {}
-  }
-  serialize_to_file(gbans, './data/gbans.lua')
-  print ('saved gbans into ./data/gbans.lua')
+    },
+    sudo_users = { 0,tonumber(our_id)},--Sudo users
+    moderation = {data = 'data/moderation.json'},
+    about_text = [[! MonsterBot Vip
+The advanced administration bot based on Tg-Cli. 🌐
+It was built on a platform TeleSeed after it has been modified.🔧🌐
+https://github.com/devmonstervip/monsterdev
+Programmer🔰
+@pxpp3
+my channel 😍👍🏼
+@INSTAOFFICIAL 🌚🔌
+the source created by only me @PXPP3
+,
+    help_text = [[هناك ثلاث انواع من اوامر
+sphelp
+او 
+spban
+او
+dvhelp
+❍____↝◐sphelp◐↜____❍
+___🔕🔒___🚨___🔔🔓___
+جميع الاوامر تعمل بالاشارات [!/]
+___🔕🔒___🚨___🔔🔓___
+  ◐↯◐↯◐↯◐↯◐↯◐↯◐↯◐↯◐↯◐↯◐
+    #Lock Commands
+  ◐↯◐↯◐↯◐↯◐↯◐↯◐↯◐↯◐↯◐↯◐
+
+🔒 lk member : قفل الاضافة❌
+🔓 un member : فتح الاضافه✔
+
+🔒 lk links : قفل الروابط❌
+🔓 un links : فتح الروابط✔
+
+🔒 lk sticker :️ قفل الملصقات❌
+🔓 un sticker :  فتح الملصقات✔
+
+🔒 lk flood : قفل التكرار❌
+🔓 un flood : فتح التكرار✔
+🔂 setflood 3>30 : لتحديد التكرار ↺
+
+🔒 lk fwd : قفل اعادة التوجيه↺❌
+🔓 un fwd : فتح اعاده توجيه↻✔
+
+🔒 bot lk : قفل البوتات❌
+🔓 bot un : فتح قفل البوتاتْ✔
+  ◐↯◐↯◐↯◐↯◐↯◐↯◐↯◐↯◐↯◐↯◐
+   #Silent Commands
+  ◐↯◐↯◐↯◐↯◐↯◐↯◐↯◐↯◐↯◐↯◐
+🔕 silent gifs : كتم الصور المتحركة
+🔔 unsilent gifs : فتح كتم المتحركة
+ 
+🔕 silent photo : كتم الصور 
+🔔 unsilent photo : فتح كتم الصور
+ 
+🔕 silent video : كتم الفيديو
+🔔 unsilent video : فتح كتم الفيديو
+ 
+🔕 silent audio : كتم البصمات
+🔔 unsilent audio : فتح البصمات
+ 
+🔕 silent all : كتم الكل 
+🔔 unsilent all :  فتح كتم الكل 
+📋 muteslist : معلومات كتم 
+____🔩🆔___🚨___🔧⚙____
+📋Info supergroup معلومات مجموعه
+____🔩🆔___🚨___🔧⚙____
+⚙[!/]settings : اعدادات المجوعه
+📖[!/]info : معلومات مجموعه
+📑[!/]rules : قوانين مجموعه
+🚫[!/]clean rules : لتنظيف قوانين
+👷[!/]modlist : لاضهار الادمنية
+🚫[!/]clean modlist : لتنظيف ادمنية
+👮[!/]owner : مشرف المجموعه
+💀[!/]bots : لاضهار بوتات مجموعه
+🆔[!/]who : ايديات مجموعه
+😈[!/]me : موقعك في مجموعه
+____✂✏___🚨___📐📈____
+ 📋اوامر الوضع تغيير وتعديل المجموعه
+____✂✏___🚨___📐📈____
+✏[!/]setname : لتغير الاسم مجموعه
+✂[!/]setrules : لوضع قوانين مجموعه
+🗻[!/]setphoto : لوضع صورة لمجموعه
+📋[!/]setabout : لوضع وصف لمجموعه
+____🃏🔧___🚨___👮⚙____
+🔷👮اوامر رفع وخفض ادمن👮🔹
+🔷[!/]promote : رفع ادمن
+🔹[!/]demote : خفض ادمن 
+
+👮[!/]setowner : لوضع مشرف 
+🌐[!/]public yes : لجعل مجموعه عامه
+🚫[!/]public no  : لجعل مجموعه خاصه
+____📎📬___🚨___📨📎____
+✉Group link رابط مجموعه📨
+____📎📬___🚨___📨📎____
+📬[!/]link : رابط مجموعه
+📩[!/]linkpv :رابط مجموعه خااص
+✉[!/]setlink : لوضع الرابط
+📨[!/]newlink : لوضع رابط جديد
+👮👮👮🃏🃏😈😈🃏🃏👮👮👮
+🚨 Dev - : @PXPP3  ◐
+🌐 CHANNEL - : @INSTAOFFICIAL ◐
+____________MONSTERBOT♺ 
+    by @pxpp3]],
+help_text_realm = [[⇒⇒⇒⇒◐superban◐↜⇐⇐⇐⇐
+🚫Commands for ban users🚫
+ _______🚫______✅_________
+🚫وامر طرد و حضر اعضاء[مشرفين]🚫
+ _______🚫______✅_________
+🚫[!/]ban + لحضر العضو : معرف
+✅[!/]unban + لالغاء حضر العضو : معرف
+ 
+❌[!/]kick + لطرد العضو : معرف
+❌[!/]block + لطرد العضو : معرف
+🚪[!/]kickme : لمغادرة المجموعه
+ 
+📋[!/]banlist : قائمه المحضروين
+ _______🚫______✅_________
+🚫Commands for ban users🚫
+ _______🚫______✔_________
+🚫اوامر طرد وحضر اعضاء[مطورين]🚫
+ _______🚫_______✔________
+❎[!/]sban + لحضر العضو عام : معرف
+✔[!/]unsban  :لالغاء حضر العام 
+
+📋[!/]gbanlist : قائمه محضورين عام
+ ______🔇🔞______🔊ℹ______
+  🔊اوامر لمنع كلمات صمت اعضاء🔇
+ ______🔇🔞______🔊ℹ______
+🔴[!/]add + لمنع الكلمه : كلمه 🚫
+🔴[!/]rm + لالغاء منع كلمه : كلمه✅
+📋[!/]badwords : قائمة ممنوعات
+🆑[!/]cleanbadwords : لحذف الممنوعات 
+
+🔕[!/]muteuser + لكتم العضو : معرف
+📋[!/]mutelist : قائمه مكتومين
+🚫[!/]clean mutelist : لتنظيف المكتومين
+ ______🃏🔧____👮⚙______
+🚨 Dev - : @PXPP3  ◐
+🌐 CHANNEL - : @INSTAOFFICIAL ◐
+__________MONSTERBOT♺
+  ]],
+}
+  serialize_to_file(config, './data/config.lua')
+  print('saved config into ./data/config.lua')
 end
 
 function on_our_id (id)
@@ -292,10 +421,10 @@ end
 function on_get_difference_end ()
 end
 
--- Enable plugins in config.lua
+-- Enable plugins in config.json
 function load_plugins()
   for k, v in pairs(_config.enabled_plugins) do
-    print('\27[92mLoading plugin '.. v..'\27[39m')
+    print("Loading plugin", v)
 
     local ok, err =  pcall(function()
       local t = loadfile("plugins/"..v..'.lua')()
@@ -304,29 +433,37 @@ function load_plugins()
 
     if not ok then
       print('\27[31mError loading plugin '..v..'\27[39m')
-      print(tostring(io.popen("lua plugins/"..v..".lua"):read('*all')))
+	  print(tostring(io.popen("lua plugins/"..v..".lua"):read('*all')))
       print('\27[31m'..err..'\27[39m')
     end
+
   end
 end
 
--- Enable lang in config.lua
-function load_lang()
-  for k, v in pairs(_config.enabled_lang) do
-    print('\27[92mLoading language '.. v..'\27[39m')
+-- custom add
+function load_data(filename)
 
-    local ok, err =  pcall(function()
-      local t = loadfile("lang/"..v..'.lua')()
-      plugins[v] = t
-    end)
+	local f = io.open(filename)
+	if not f then
+		return {}
+	end
+	local s = f:read('*all')
+	f:close()
+	local data = JSON.decode(s)
 
-    if not ok then
-      print('\27[31mError loading language '..v..'\27[39m')
-      print(tostring(io.popen("lua lang/"..v..".lua"):read('*all')))
-      print('\27[31m'..err..'\27[39m')
-    end
-  end
+	return data
+
 end
+
+function save_data(filename, data)
+
+	local s = JSON.encode(data)
+	local f = io.open(filename, 'w')
+	f:write(s)
+	f:close()
+
+end
+
 
 -- Call and postpone execution for cron plugins
 function cron_plugins()
@@ -338,8 +475,8 @@ function cron_plugins()
     end
   end
 
-  -- Called again in 5 mins
-  postpone (cron_plugins, false, 5*60.0)
+  -- Called again in 2 mins
+  postpone (cron_plugins, false, 120)
 end
 
 -- Start and load values
