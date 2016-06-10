@@ -212,15 +212,14 @@ function create_config( )
   -- A simple config with basic plugins and ourselves as privileged user
   config = {
     enabled_plugins = {
-    "admin",
+     "admin",
     "anti_spam",
     "banhammer",
     "get",
     "set",
     "help",
-    "nospam",
     "dev",
-    "serverinfo",
+    "music",
     "antibot",
     "addbot",
     "inpv",
@@ -232,7 +231,6 @@ function create_config( )
     "stats",
     "whitelist",
     "Banhelp",
-    "supergroup",
     "plugins",
     "onservice",
     "ingroup",
@@ -245,17 +243,16 @@ function create_config( )
     "upredis",
     "badword",
     "me",
-    "autoReply",
     "delenum",
     "azan",
     "time",
     "bye",
     "setbye",
     "shortlink",
+    "supergroup",
     "nophoto",
     "translate",
     "weather"
-
     },
     sudo_users = { 0,tonumber(our_id)},--Sudo users
     moderation = {data = 'data/moderation.json'},
