@@ -13,7 +13,7 @@ local function history(extra, suc, result)
     send_msg(extra.chatid, 'The msgs is deleted !!', ok_cb, false)
   end
 end
-local function iDev1(msg, matches)
+local function run(msg, matches)
   if matches[1] == 'dele' and is_sudo(msg) then
     if msg.to.type == 'channel' then
       if tonumber(matches[2]) > 10000000 or tonumber(matches[2]) < 1 then
@@ -32,5 +32,5 @@ return {
     patterns = {
         '^[!/#](dele) (%d*)$'
     },
-    run = iDev1
+    run = run
 }
