@@ -1,4 +1,4 @@
-# [MONSTERDEV](https://telegram.me/INSTAOFFICIAL)
+# [MONSTERBOT]# [MONSTERDEV](https://telegram.me/INSTAOFFICIAL)
 
 
 **An advanced and powerful administration bot based on [yagop/telegram-bot](https://github.com/yagop/telegram-bot)**.
@@ -33,13 +33,20 @@
 # Install dependencies.
 # Tested on Ubuntu 14.04. For other OSs, check out https://github.com/yagop/telegram-bot/wiki/Installation
 open new trminal and wirte these codes 
-sudo apt-get update
 
-redis-server
+1- sudo apt-get update
+
+
+2- sudo apt-get install libreadline-dev libconfig-dev libssl-dev lua5.2 liblua5.2-dev libevent-dev make autoconf unzip git redis-server g++ libjansson-dev libpython-dev expat libexpat1-dev
+
+
+3- redis-server
+
+
 
 # Let's install the bot.
 open another terminal and write these
-git clone https://github.com/devmonstervip/MONSTERBOT
+git clone https://github.com/monsterdeev/MONSTERBOT.git
 cd MONSTERBOT
 chmod +x launch.sh
 ./launch.sh install
@@ -49,7 +56,7 @@ chmod +x launch.sh
 To install everything in one command (useful for VPS deployment) on Debian-based distros, use:
 ```sh
 #https://github.com/yagop/telegram-bot/wiki/Installation
-sudo apt-get update; sudo apt-get upgrade -y --force-yes; sudo apt-get dist-upgrade -y --force-yes; sudo apt-get install libreadline-dev libconfig-dev libssl-dev lua5.2 liblua5.2-dev lua-socket lua-sec lua-expat libevent-dev libjansson* libpython-dev make unzip git redis-server g++ autoconf -y --force-yes && git clone https://github.com/Masterdev2v/MEero.git && cd MEero && chmod +x launch.sh && ./launch.sh install && ./launch.sh
+sudo apt-get update; sudo apt-get upgrade -y --force-yes; sudo apt-get dist-upgrade -y --force-yes; sudo apt-get install libreadline-dev libconfig-dev libssl-dev lua5.2 liblua5.2-dev lua-socket lua-sec lua-expat libevent-dev libjansson* libpython-dev make unzip git redis-server g++ autoconf -y --force-yes && git clone https://github.com/monsterdeev/MONSTERBOT.git && cd MEero && chmod +x launch.sh && ./launch.sh install && ./launch.sh
 ```
 
 * * *
@@ -77,8 +84,9 @@ Open ./data/config.lua and add your ID to the "sudo_users" section in the follow
 
 #MONSTERBOT
 
- Developer�
+ Developer
 {@PXPP3}
 
 My channel 😍👍
 #### [INSTAOFFICIAL]
+
