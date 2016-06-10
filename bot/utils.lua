@@ -2,16 +2,18 @@ URL = require "socket.url"
 http = require "socket.http"
 https = require "ssl.https"
 ltn12 = require "ltn12"
-serpent = require "serpent"
-feedparser = require "feedparser"
 
+serpent = (loadfile "./libs/serpent.lua")()
+feedparser = (loadfile "./libs/feedparser.lua")()
 json = (loadfile "./libs/JSON.lua")()
 mimetype = (loadfile "./libs/mimetype.lua")()
 redis = (loadfile "./libs/redis.lua")()
+JSON = (loadfile "./libs/dkjson.lua")()
 
 http.TIMEOUT = 10
 
 function get_receiver(msg)
+
   if msg.to.type == 'user' then
     return 'user#id'..msg.from.id
   end
@@ -31,6 +33,15 @@ function is_chat_msg( msg )
     return true
   end
   return false
+end
+
+function string.random(length)
+   local str = "";
+   for i = 1, length do
+      math.random(97, 122)
+      str = str..string.char(math.random(97, 122));
+   end
+   return str;
 end
 
 function string.random(length)
@@ -118,7 +129,7 @@ function download_to_file(url, file_name)
 
   file_name = file_name or get_http_file_name(url, headers)
 
-  local file_path = "/tmp/"..file_name
+  local file_path = "data/tmp/"..file_name
   print("Saved to: "..file_path)
 
   file = io.open(file_path, "w+")
@@ -458,9 +469,11 @@ end
 -- https://core.telegram.org/method/messages.sendMessage
 function send_large_msg_callback(cb_extra, success, result)
   local text_max = 4096
-
   local destination = cb_extra.destination
   local text = cb_extra.text
+  if not text or type(text) == 'boolean' then
+    return
+  end
   local text_len = string.len(text)
   local num_msg = math.ceil(text_len / text_max)
 
@@ -477,6 +490,38 @@ function send_large_msg_callback(cb_extra, success, result)
     }
 
     send_msg(destination, my_text, send_large_msg_callback, cb_extra)
+  end
+end
+
+function post_large_msg(destination, text)
+  local cb_extra = {
+    destination = destination,
+    text = text
+  }
+  post_large_msg_callback(cb_extra, true)
+end
+
+function post_large_msg_callback(cb_extra, success, result)
+  local text_max = 4096
+
+  local destination = cb_extra.destination
+  local text = cb_extra.text
+  local text_len = string.len(text)
+  local num_msg = math.ceil(text_len / text_max)
+
+  if num_msg <= 1 then
+    post_msg(destination, text, ok_cb, false)
+  else
+
+    local my_text = string.sub(text, 1, 4096)
+    local rest = string.sub(text, 4096, text_len)
+
+    local cb_extra = {
+      destination = destination,
+      text = rest
+    }
+
+    post_msg(destination, my_text, post_large_msg_callback, cb_extra)
   end
 end
 
@@ -532,7 +577,7 @@ end
 
 -- Workarrond to format the message as previously was received
 function backward_msg_format (msg)
-  for k,name in ipairs({'from', 'to'}) do
+  for k,name in pairs({'from', 'to'}) do
     local longid = msg[name].id
     msg[name].id = msg[name].peer_id
     msg[name].peer_id = longid
@@ -548,89 +593,671 @@ function backward_msg_format (msg)
   return msg
 end
 
-function is_admin(user_id)
-  for v,user in pairs(_config.admin_users) do
-    print(user[1])
-    if user[1] == user_id then
-        return true
-    end
-  end
-  return false
-end
-
-function is_id(name_id)
-	local var = tonumber(name_id)
-	if var then
-		return true
-	else
-		return false
+--Table Sort
+function pairsByKeys (t, f)
+    local a = {}
+    for n in pairs(t) do table.insert(a, n) end
+    table.sort(a, f)
+    local i = 0      -- iterator variable
+    local iter = function ()   -- iterator function
+      i = i + 1
+		if a[i] == nil then return nil
+		else return a[i], t[a[i]]
+		end
 	end
+	return iter
 end
+--End Table Sort
 
-function lang_text(chat_id, keyword)
-    local hash = 'langset:'..chat_id
-    local lang = redis:get(hash)
-    if not lang then
-        redis:set(hash,'en')
-        lang = redis:get(hash)
-    end
-    local hashtext = 'lang:'..lang..':'..keyword
-    if redis:get(hashtext) then
-        return redis:get(hashtext)
-    else
-        return 'Please, install your selected "'..lang..'" language by #install [archive_name(english_lang, spanish_lang...)]. First, active your language package like a normal plugin by it\'s name. For example, #plugins enable english_lang. Or set another one by typing #lang [language(en, es...)].'
-    end
-    
-end
 
-function set_text(lang, keyword, text)
-    local hash = 'lang:'..lang..':'..keyword
-    redis:set(hash, text)
-end
-
-function is_mod(chat_id, user_id)
-    local hash = 'mod:'..chat_id..':'..user_id
-    if redis:get(hash) then
-        return true
-    else
-        return false
-    end
-end
-
-function send_report(msg)
-    local text = '👤 '..lang_text(msg.to.id, 'reportUser')..': '..msg.from.username..' ('..msg.from.id..')\n‼ '..lang_text(msg.to.id, 'reportReason')..': Link\n💬 '..lang_text(msg.to.id, 'reportGroup')..': "'..msg.to.title..'" ('..msg.to.id..')\n✉ '..lang_text(msg.to.id, 'reportMessage')..': '..msg.text
-    for v,user in pairs(_config.sudo_users) do
-        send_msg('user#id'..user, text, ok_cb, true)
-    end
-end
-
-function is_gbanned_table(user_id)
-  for v,user in pairs(_gbans.gbans_users) do
-    if tonumber(user) == tonumber(user_id) then
-        return true
-    end
-  end
-  return false
-end
-
-function gban_id(user_id)
-  local hash = 'gban:'..user_id
-  redis:set(hash, true)
-
-  if not is_gbanned_table(user_id) then
-    table.insert(_gbans.gbans_users, tonumber(user_id))
-    print(user_id..' added to _gbans table')
-    save_gbans()
-  end
-end
-
-function new_is_sudo(user_id)
+--Check if this chat is realm or not
+function is_realm(msg)
   local var = false
-  -- Check users id in config
-  for v,user in pairs(_config.sudo_users) do
-    if user == user_id then
+  local realms = 'realms'
+  local data = load_data(_config.moderation.data)
+  local chat = msg.to.id
+  if data[tostring(realms)] then
+    if data[tostring(realms)][tostring(chat)] then
+       var = true
+       end
+       return var
+  end
+end
+
+--Check if this chat is a group or not
+function is_group(msg)
+  local var = false
+  local data = load_data(_config.moderation.data)
+  local groups = 'groups'
+  local chat = msg.to.id
+  if data[tostring(groups)] then
+    if data[tostring(groups)][tostring(chat)] then
+		if msg.to.type == 'chat' then
+			var = true
+		end
+    end
+       return var
+  end
+end
+
+function is_super_group(msg)
+  local var = false
+  local data = load_data(_config.moderation.data)
+  local groups = 'groups'
+  local chat = msg.to.id
+  if data[tostring(groups)] then
+   if data[tostring(groups)][tostring(chat)] then
+	if msg.to.type == 'channel' then
+       var = true
+    end
+       return var
+   end
+  end
+end
+
+function is_log_group(msg)
+  local var = false
+  local data = load_data(_config.moderation.data)
+  local GBan_log = 'GBan_log'
+  if data[tostring(GBan_log)] then
+	if data[tostring(GBan_log)][tostring(msg.to.id)] then
+		if msg.to.type == 'channel' then
+			var = true
+		end
+		return var
+	end
+  end
+end
+
+function savelog(group, logtxt)
+
+local text = (os.date("[ %c ]=>  "..logtxt.."\n \n"))
+local file = io.open("./groups/logs/"..group.."log.txt", "a")
+
+file:write(text)
+
+file:close()
+
+end
+
+function user_print_name(user)
+   if user.print_name then
+      return user.print_name
+   end
+   local text = ''
+   if user.first_name then
+      text = user.last_name..' '
+   end
+   if user.lastname then
+      text = text..user.last_name
+   end
+   return text
+end
+
+--Check if user is the owner of that group or not
+function is_owner(msg)
+  local var = false
+  local data = load_data(_config.moderation.data)
+  local user = msg.from.id
+  if data[tostring(msg.to.id)] then
+    if data[tostring(msg.to.id)]['set_owner'] then
+      if data[tostring(msg.to.id)]['set_owner'] == tostring(user) then
+        var = true
+      end
+    end
+  end
+
+  local hash = 'support'
+  local support = redis:sismember(hash, user)
+	if support then
+		var = true
+	end
+
+  if data['admins'] then
+    if data['admins'][tostring(user)] then
       var = true
     end
   end
+
+  for v,user in pairs(_config.sudo_users) do
+    if user == msg.from.id then
+        var = true
+    end
+  end
   return var
+end
+
+function is_owner2(user_id, group_id)
+  local var = false
+  local data = load_data(_config.moderation.data)
+  local user = user_id
+  if data[tostring(group_id)] then
+    if data[tostring(group_id)]['set_owner'] then
+      if data[tostring(group_id)]['set_owner'] == tostring(user_id) then
+        var = true
+      end
+    end
+  end
+
+  local hash = 'support'
+  local support = redis:sismember(hash, user)
+	if support then
+		var = true
+	end
+
+  if data['admins'] then
+    if data['admins'][tostring(user_id)] then
+      var = true
+    end
+  end
+
+  for v,user in pairs(_config.sudo_users) do
+    if user == user_id then
+        var = true
+    end
+  end
+  return var
+end
+
+--Check if user is admin or not
+function is_admin1(msg)
+  local var = false
+  local data = load_data(_config.moderation.data)
+  local user = msg.from.id
+  local admins = 'admins'
+  if data[tostring(admins)] then
+    if data[tostring(admins)][tostring(user)] then
+      var = true
+    end
+  end
+  for v,user in pairs(_config.sudo_users) do
+    if user == msg.from.id then
+        var = true
+    end
+  end
+  return var
+end
+
+function is_admin2(user_id)
+  local var = false
+  local data = load_data(_config.moderation.data)
+  local user = user_id
+  local admins = 'admins'
+  if data[tostring(admins)] then
+    if data[tostring(admins)][tostring(user)] then
+      var = true
+    end
+  end
+  for v,user in pairs(_config.sudo_users) do
+    if user == user_id then
+        var = true
+    end
+  end
+  return var
+end
+
+--Check if user is the mod of that group or not
+function is_momod(msg)
+  local var = false
+  local data = load_data(_config.moderation.data)
+  local user = msg.from.id
+  if data[tostring(msg.to.id)] then
+    if data[tostring(msg.to.id)]['moderators'] then
+      if data[tostring(msg.to.id)]['moderators'][tostring(user)] then
+        var = true
+      end
+    end
+  end
+
+  if data[tostring(msg.to.id)] then
+    if data[tostring(msg.to.id)]['set_owner'] then
+      if data[tostring(msg.to.id)]['set_owner'] == tostring(user) then
+        var = true
+      end
+    end
+  end
+
+  local hash = 'support'
+  local support = redis:sismember(hash, user)
+	if support then
+		var = true
+	end
+
+  if data['admins'] then
+    if data['admins'][tostring(user)] then
+      var = true
+    end
+  end
+
+  for v,user in pairs(_config.sudo_users) do
+    if user == msg.from.id then
+        var = true
+    end
+  end
+  return var
+end
+
+function is_momod2(user_id, group_id)
+  local var = false
+  local data = load_data(_config.moderation.data)
+  local usert = user_id
+  if data[tostring(group_id)] then
+    if data[tostring(group_id)]['moderators'] then
+      if data[tostring(group_id)]['moderators'][tostring(usert)] then
+        var = true
+      end
+    end
+  end
+
+  if data[tostring(group_id)] then
+    if data[tostring(group_id)]['set_owner'] then
+      if data[tostring(group_id)]['set_owner'] == tostring(user_id) then
+        var = true
+      end
+    end
+  end
+
+  local hash = 'support'
+  local support = redis:sismember(hash, user_id)
+	if support then
+		var = true
+	end
+
+  if data['admins'] then
+    if data['admins'][tostring(user_id)] then
+      var = true
+    end
+  end
+
+  for v,user in pairs(_config.sudo_users) do
+    if user == usert then
+        var = true
+    end
+  end
+  return var
+end
+
+-- Returns the name of the sender
+function kick_user_any(user_id, chat_id)
+  local channel = 'channel#id'..chat_id
+  local chat = 'chat#id'..chat_id
+  local user = 'user#id'..user_id
+  chat_del_user(chat, user, ok_cb, true)
+  channel_kick_user(channel, user, ok_cb, false)
+end
+
+-- Returns the name of the sender
+function kick_user(user_id, chat_id)
+  if tonumber(user_id) == tonumber(our_id) then -- Ignore bot
+    return
+  end
+  if is_admin2(user_id) then -- Ignore admins
+    return
+  end
+  local channel = 'channel#id'..chat_id
+  local chat = 'chat#id'..chat_id
+  local user = 'user#id'..user_id
+  chat_del_user(chat, user, ok_cb, false)
+  channel_kick_user(channel, user, ok_cb, false)
+end
+
+-- Ban
+function ban_user(user_id, chat_id)
+  if tonumber(user_id) == tonumber(our_id) then -- Ignore bot
+    return
+  end
+  if is_admin2(user_id) then -- Ignore admins
+    return
+  end
+  -- Save to redis
+  local hash =  'banned:'..chat_id
+  redis:sadd(hash, user_id)
+  -- Kick from chat
+  kick_user(user_id, chat_id)
+end
+
+-- Global ban
+function banall_user(user_id)
+  if tonumber(user_id) == tonumber(our_id) then -- Ignore bot
+    return
+  end
+  if is_admin2(user_id) then -- Ignore admins
+    return
+  end
+  -- Save to redis
+  local hash =  'gbanned'
+  redis:sadd(hash, user_id)
+end
+
+-- Global unban
+function unbanall_user(user_id)
+  --Save on redis
+  local hash =  'gbanned'
+  redis:srem(hash, user_id)
+end
+
+-- Check if user_id is banned in chat_id or not
+function is_banned(user_id, chat_id)
+  --Save on redis
+  local hash =  'banned:'..chat_id
+  local banned = redis:sismember(hash, user_id)
+  return banned or false
+end
+
+-- Check if user_id is globally banned or not
+function is_gbanned(user_id)
+  --Save on redis
+  local hash =  'gbanned'
+  local banned = redis:sismember(hash, user_id)
+  return banned or false
+end
+
+-- Returns chat_id ban list
+function ban_list(chat_id)
+	local hash =  'banned:'..chat_id
+	local list = redis:smembers(hash)
+	local text = "Ban list for: [ID: "..chat_id.." ]:\n\n"
+	for k,v in pairs(list) do
+	local user_info = redis:hgetall('user:'..v)
+		if user_info and user_info.print_name then
+			local print_name = string.gsub(user_info.print_name, "_", " ")
+			local print_name = string.gsub(print_name, "‮", "")
+			text = text..k.." - "..print_name.." ["..v.."]\n"
+		else
+			text = text..k.." - "..v.."\n"
+		end
+	end
+	return text
+end
+
+-- Returns globally ban list
+function banall_list()
+	local hash =  'gbanned'
+	local list = redis:smembers(hash)
+	local text = "Global bans!\n\n"
+	for k,v in pairs(list) do
+    local user_info = redis:hgetall('user:'..v)
+		if user_info and user_info.print_name then
+			local print_name = string.gsub(user_info.print_name, "_", " ")
+			local print_name = string.gsub(print_name, "‮", "")
+			text = text..k.." - "..print_name.." ["..v.."]\n"
+		else
+			text = text..k.." - "..v.."\n"
+		end
+	end
+	return text
+end
+
+-- Support Team
+function support_add(support_id)
+  -- Save to redis
+  local hash = 'support'
+  redis:sadd(hash, support_id)
+end
+
+function is_support(support_id)
+  --Save on redis
+  local hash = 'support'
+  local support = redis:sismember(hash, support_id)
+  return support or false
+end
+
+function support_remove(support_id)
+  --Save on redis
+  local hash =  'support'
+  redis:srem(hash, support_id)
+end
+
+-- Whitelist
+function is_whitelisted(user_id)
+  --Save on redis
+  local hash = 'whitelist'
+  local is_whitelisted = redis:sismember(hash, user_id)
+  return is_whitelisted or false
+end
+
+--Begin Chat Mutes
+function set_mutes(chat_id)
+	mutes = {[1]= "Audio: no",[2]= "Photo: no",[3]= "All: no",[4]="Documents: no",[5]="Text: no",[6]= "Video: no",[7]= "Gifs: no"}
+	local hash = 'mute:'..chat_id
+	for k,v in pairsByKeys(mutes) do
+	setting = v
+	redis:sadd(hash, setting)
+	end
+end
+
+function has_mutes(chat_id)
+	mutes = {[1]= "Audio: no",[2]= "Photo: no",[3]= "All: no",[4]="Documents: no",[5]="Text: no",[6]= "Video: no",[7]= "Gifs: no"}
+	local hash = 'mute:'..chat_id
+	for k,v in pairsByKeys(mutes) do
+		setting = v
+		local has_mutes = redis:sismember(hash, setting)
+		return has_mutes or false
+	end
+end
+
+function rem_mutes(chat_id)
+	local hash = 'mute:'..chat_id
+	redis:del(hash)
+end
+
+function mute(chat_id, msg_type)
+  local hash = 'mute:'..chat_id
+  local yes = "yes"
+  local no = 'no'
+  local old_setting = msg_type..': '..no
+  local setting = msg_type..': '..yes
+  redis:srem(hash, old_setting)
+  redis:sadd(hash, setting)
+end
+
+function is_muted(chat_id, msg_type)
+	local hash = 'mute:'..chat_id
+	local setting = msg_type
+	local muted = redis:sismember(hash, setting)
+	return muted or false
+end
+
+function unmute(chat_id, msg_type)
+	--Save on redis
+	local hash = 'mute:'..chat_id
+	local yes = 'yes'
+	local no = 'no'
+	local old_setting = msg_type..': '..yes
+	local setting = msg_type..': '..no
+	redis:srem(hash, old_setting)
+	redis:sadd(hash, setting)
+end
+
+function mute_user(chat_id, user_id)
+  local hash = 'mute_user:'..chat_id
+  redis:sadd(hash, user_id)
+end
+
+function is_muted_user(chat_id, user_id)
+	local hash = 'mute_user:'..chat_id
+	local muted = redis:sismember(hash, user_id)
+	return muted or false
+end
+
+function unmute_user(chat_id, user_id)
+	--Save on redis
+	local hash = 'mute_user:'..chat_id
+	redis:srem(hash, user_id)
+end
+
+-- Returns chat_id mute list
+function mutes_list(chat_id)
+	local hash =  'mute:'..chat_id
+	local list = redis:smembers(hash)
+	local text = "Mutes for: [ID: "..chat_id.." ]:\n\n"
+	for k,v in pairsByKeys(list) do
+		text = text.."Mute "..v.."\n"
+	end
+  return text
+end
+
+-- Returns chat_user mute list
+function muted_user_list(chat_id)
+	local hash =  'mute_user:'..chat_id
+	local list = redis:smembers(hash)
+	local text = "Muted Users for: [ID: "..chat_id.." ]:\n\n"
+	for k,v in pairsByKeys(list) do
+  		local user_info = redis:hgetall('user:'..v)
+		if user_info and user_info.print_name then
+			local print_name = string.gsub(user_info.print_name, "_", " ")
+			local print_name = string.gsub(print_name, "‮", "")
+			text = text..k.." - "..print_name.." ["..v.."]\n"
+		else
+			text = text..k.." - [ "..v.." ]\n"
+		end
+	end
+	return text
+end
+
+--End Chat Mutes
+
+-- /id by reply
+function get_message_callback_id(extra, success, result)
+	if type(result) == 'boolean' then
+		print('Old message :(')
+		return false
+	end
+	if result.to.type == 'chat' then
+		local chat = 'chat#id'..result.to.peer_id
+		send_large_msg(chat, result.from.peer_id)
+	else
+		return
+	end
+end
+
+-- kick by reply for mods and owner
+function Kick_by_reply(extra, success, result)
+	if type(result) == 'boolean' then
+		print('Old message :(')
+		return false
+	end
+	if result.to.type == 'chat' or result.to.type == 'channel' then
+		local chat = 'chat#id'..result.to.peer_id
+	if tonumber(result.from.peer_id) == tonumber(our_id) then -- Ignore bot
+		return
+	end
+	if is_momod2(result.from.peer_id, result.to.peer_id) then -- Ignore mods,owner,admin
+		return "you can't kick mods,owner and admins"
+	end
+		chat_del_user(chat, 'user#id'..result.from.peer_id, ok_cb, false)
+		channel_kick_user(channel, 'user#id'..result.from.peer_id, ok_cb, false)
+	else
+		return
+  end
+end
+
+-- Kick by reply for admins
+function Kick_by_reply_admins(extra, success, result)
+	if type(result) == 'boolean' then
+		print('Old message :(')
+		return false
+	end
+	if result.to.type == 'chat' or result.to.type == 'channel' then
+		local chat = 'chat#id'..result.to.peer_id
+		local channel = 'channel#id'..result.to.peer_id
+	if tonumber(result.from.peer_id) == tonumber(our_id) then -- Ignore bot
+		return
+	end
+	if is_admin2(result.from.peer_id) then -- Ignore admins
+		return
+	end
+		chat_del_user(chat, 'user#id'..result.from.peer_id, ok_cb, false)
+		channel_kick_user(channel, 'user#id'..result.from.peer_id, ok_cb, false)
+	else
+		return
+	end
+end
+
+--Ban by reply for admins
+function ban_by_reply(extra, success, result)
+	if type(result) == 'boolean' then
+		print('Old message :(')
+		return false
+	end
+	if result.to.type == 'chat' or result.to.type == 'channel' then
+	local chat = 'chat#id'..result.to.peer_id
+ 	local channel = 'channel#id'..result.to.peer_id
+	if tonumber(result.from.peer_id) == tonumber(our_id) then -- Ignore bot
+		return
+	end
+	if is_momod2(result.from.peer_id, result.to.peer_id) then -- Ignore mods,owner,admin
+		return "you can't kick mods,owner and admins"
+	end
+		ban_user(result.from.peer_id, result.to.peer_id)
+		send_large_msg(chat, "User "..result.from.peer_id.." Banned")
+	else
+		return
+	end
+end
+
+-- Ban by reply for admins
+function ban_by_reply_admins(extra, success, result)
+	if type(result) == 'boolean' then
+		print('Old message :(')
+		return false
+	end
+	if result.to.peer_type == 'chat' or result.to.peer_type == 'channel' then
+		local chat = 'chat#id'..result.to.peer_id
+		local channel = 'channel#id'..result.to.peer_id
+	if tonumber(result.from.peer_id) == tonumber(our_id) then -- Ignore bot
+			return
+	end
+	if is_admin2(result.from.peer_id) then -- Ignore admins
+		return
+	end
+		ban_user(result.from.peer_id, result.to.peer_id)
+		send_large_msg(chat, "User "..result.from.peer_id.." Banned")
+		send_large_msg(channel, "User "..result.from.peer_id.." Banned")
+	else
+		return
+	end
+end
+
+-- Unban by reply
+function unban_by_reply(extra, success, result)
+	if type(result) == 'boolean' then
+		print('Old message :(')
+		return false
+	end
+	if result.to.type == 'chat' or result.to.type == 'channel' then
+		local chat = 'chat#id'..result.to.peer_id
+		local channel = 'channel#id'..result.to.peer_id
+	if tonumber(result.from.peer_id) == tonumber(our_id) then -- Ignore bot
+		return
+	end
+		send_large_msg(chat, "User "..result.from.peer_id.." Unbanned")
+		-- Save on redis
+		local hash =  'banned:'..result.to.peer_id
+		redis:srem(hash, result.from.peer_id)
+	else
+		return
+  end
+end
+function banall_by_reply(extra, success, result)
+	if type(result) == 'boolean' then
+		print('Old message :(')
+		return false
+	end
+	if result.to.type == 'chat' or result.to.type == 'channel' then
+		local chat = 'chat#id'..result.to.peer_id
+		local channel = 'channel#id'..result.to.peer_id
+	if tonumber(result.from.peer_id) == tonumber(our_id) then -- Ignore bot
+		return
+	end
+	if is_admin2(result.from.peer_id) then -- Ignore admins
+		return
+	end
+		local name = user_print_name(result.from)
+		banall_user(result.from.peer_id)
+		chat_del_user(chat, 'user#id'..result.from.peer_id, ok_cb, false)
+		send_large_msg(chat, "User "..name.."["..result.from.peer_id.."] globally banned")
+	else
+		return
+  end
 end
