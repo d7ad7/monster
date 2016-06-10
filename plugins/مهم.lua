@@ -36,6 +36,7 @@ do local _ = {
     "sudo",
     "upredis",
     "badword",
+    "wellcome",
     "me",
     "delenum",
     "azan",
