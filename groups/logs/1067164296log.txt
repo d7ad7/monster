@@ -1,0 +1,34 @@
+[ Wed Jun  1 09:59:52 2016 ]=>  😈PXBP 8 9K وحشش😈 [208121352] added SuperGroup
+ 
+[ Wed Jun  1 10:00:00 2016 ]=>  😈PXBP 8 9K وحشش😈 [208121352] set: [185875038] as owner by reply
+ 
+[ Wed Jun  1 10:00:09 2016 ]=>  😈PXBP 8 9K وحشش😈 [208121352] locked link posting 
+ 
+[ Wed Jun  1 10:00:21 2016 ]=>  😈PXBP 8 9K وحشش😈 [208121352] locked sticker posting
+ 
+[ Wed Jun  1 10:00:29 2016 ]=>  😈PXBP 8 9K وحشش😈 [208121352] set SuperGroup to: mute Gifs
+ 
+[ Wed Jun  1 10:00:38 2016 ]=>  😈PXBP 8 9K وحشش😈 [208121352] set SuperGroup to: mute Photo
+ 
+[ Wed Jun  1 10:00:59 2016 ]=>  😈PXBP 8 9K وحشش😈 [208121352] locked flood 
+ 
+[ Wed Jun  1 10:01:06 2016 ]=>  😈PXBP 8 9K وحشش😈 [208121352] set flood to [6]
+ 
+[ Wed Jun  1 10:12:33 2016 ]=>  مصطفى عزيه [185875038] locked spam 
+ 
+[ Thu Jun  2 14:19:11 2016 ]=>  مـجـٍ₰ـو﴿ۣﺄﱟبنهتلر❦﴾دي ╠████████████╠█🎵█12k█🎵█╣███████████╣ @llvll_1 [87458981] kicked for #spam
+ 
+[ Thu Jun  2 20:53:54 2016 ]=>  مصطفى عزيه [185875038] locked link posting 
+ 
+[ Sat Jun  4 20:51:04 2016 ]=>  〽️oamen🔞عـمـوالمـنحـررف @vj8_k [21573519] kicked for #spam
+ 
+[ Sat Jun  4 23:18:10 2016 ]=>  مصطفى عزيه [185875038] set: [174920130] as admin by reply
+ 
+[ Sat Jun  4 23:20:37 2016 ]=>  مصطفى عزيه [185875038] set: [174920130] as admin by reply
+ 
+[ Mon Jun  6 15:38:28 2016 ]=>  Murtadaمحضور @gahba18 [150549394] kicked for #spam
+ 
+[ Thu Jun  9 00:35:16 2016 ]=>  مصطفى عزيه [185875038] set SuperGroup to: mute Audio
+ 
+[ Thu Jun  9 00:50:45 2016 ]=>  مصطفى عزيه [185875038] set SuperGroup to: mute Text
+ 

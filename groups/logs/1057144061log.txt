@@ -1,0 +1,48 @@
+[ Fri Jun  3 13:30:53 2016 ]=>  😈PXBP 8 9K وحشش😈 [208121352] added SuperGroup
+ 
+[ Fri Jun  3 13:31:46 2016 ]=>  😈PXBP 8 9K وحشش😈 [208121352] set: [159344441] as owner by reply
+ 
+[ Fri Jun  3 13:31:54 2016 ]=>  😈PXBP 8 9K وحشش😈 [208121352] promoted mod: @@m_r33[95939879] by reply
+ 
+[ Fri Jun  3 13:32:05 2016 ]=>  😈PXBP 8 9K وحشش😈 [208121352] locked link posting 
+ 
+[ Fri Jun  3 13:32:42 2016 ]=>  😈PXBP 8 9K وحشش😈 [208121352] locked sticker posting
+ 
+[ Fri Jun  3 13:33:01 2016 ]=>  😈PXBP 8 9K وحشش😈 [208121352] set SuperGroup to: mute Gifs
+ 
+[ Fri Jun  3 13:33:07 2016 ]=>  😈PXBP 8 9K وحشش😈 [208121352] set flood to [5]
+ 
+[ Fri Jun  3 13:33:13 2016 ]=>  😈PXBP 8 9K وحشش😈 [208121352] locked flood 
+ 
+[ Fri Jun  3 13:33:21 2016 ]=>  😈PXBP 8 9K وحشش😈 [208121352] set flood to [10]
+ 
+[ Fri Jun  3 13:33:47 2016 ]=>  😈PXBP 8 9K وحشش😈 [208121352] promoted @hjhughy
+ 
+[ Fri Jun  3 13:36:41 2016 ]=>  بيني وبينكم الله ✺ مــيٍّــم || 21k 🇮🇶 MÊM ✺ [95939879] set SuperGroup to: mute Text
+ 
+[ Fri Jun  3 17:29:09 2016 ]=>  بيني وبينكم الله ✺ مــيٍّــم || 21k 🇮🇶 MÊM ✺ [95939879] set SuperGroup to: unmute message
+ 
+[ Fri Jun  3 17:30:19 2016 ]=>  بيني وبينكم الله ✺ مــيٍّــم || 21k 🇮🇶 MÊM ✺ [95939879] set SuperGroup to: mute Photo
+ 
+[ Fri Jun  3 17:33:55 2016 ]=>  بيني وبينكم الله ✺ مــيٍّــم || 21k 🇮🇶 MÊM ✺ [95939879] renamed SuperGroup to: ‎اقروا المثبتةة دعم 10k
+ 
+[ Fri Jun  3 17:34:29 2016 ]=>  بيني وبينكم الله ✺ مــيٍّــم || 21k 🇮🇶 MÊM ✺ [95939879] renamed SuperGroup to: اقروا المثبتةة دعم 10k
+ 
+[ Fri Jun  3 18:20:19 2016 ]=>  بيني وبينكم الله ✺ مــيٍّــم || 21k 🇮🇶 MÊM ✺ [95939879] locked link posting 
+ 
+[ Fri Jun  3 19:35:19 2016 ]=>  بيني وبينكم الله ✺ مــيٍّــم || 21k 🇮🇶 MÊM ✺ [95939879] set SuperGroup to: mute Text
+ 
+[ Sat Jun  4 14:57:42 2016 ]=>  بِنِـتّ أّلَـحلـوِةّ 16k ❈  🎶 ₰  ↠ ❣  ♪❀   ↡ ↡  ⇣  ℠  🌸 🍃    || 💔  ~  . . [159344441] set SuperGroup to: unmute message
+ 
+[ Sat Jun  4 14:58:20 2016 ]=>  بِنِـتّ أّلَـحلـوِةّ 16k ❈  🎶 ₰  ↠ ❣  ♪❀   ↡ ↡  ⇣  ℠  🌸 🍃    || 💔  ~  . . [159344441] renamed SuperGroup to: بده استلم الكلايش
+ 
+[ Sat Jun  4 15:02:06 2016 ]=>  😈PXBP 8 9K وحشش😈 [208121352] unlocked link posting
+ 
+[ Sat Jun  4 15:02:47 2016 ]=>  😈PXBP 8 9K وحشش😈 [208121352] set SuperGroup to: unmute Photo
+ 
+[ Sat Jun  4 17:04:10 2016 ]=>  بِنِـتّ أّلَـحلـوِةّ 16k ❈  🎶 ₰  ↠ ❣  ♪❀   ↡ ↡  ⇣  ℠  🌸 🍃    || 💔  ~  . . [159344441] renamed SuperGroup to: بده الدعم
+ 
+[ Sat Jun  4 17:11:45 2016 ]=>  بِنِـتّ أّلَـحلـوِةّ 16k ❈  🎶 ₰  ↠ ❣  ♪❀   ↡ ↡  ⇣  ℠  🌸 🍃    || 💔  ~  . . [159344441] set SuperGroup to: mute Text
+ 
+[ Sat Jun  4 17:12:00 2016 ]=>  بِنِـتّ أّلَـحلـوِةّ 16k ❈  🎶 ₰  ↠ ❣  ♪❀   ↡ ↡  ⇣  ℠  🌸 🍃    || 💔  ~  . . [159344441] renamed SuperGroup to: ماكو  دعم 👎
+ 
