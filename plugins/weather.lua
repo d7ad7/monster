@@ -34,7 +34,7 @@ local function get_weather(location)
     conditions = conditions .. 'مه 🌫'
   end
 
-  return temp .. '\n\n' .. conditions..'\n\nchannel : @DevPointCH'
+  return temp .. '\n\n' .. conditions..'\n\nchannel : @INSTAOFFICIAL'
 end
 local function run(msg, matches) 
     city = matches[1]
